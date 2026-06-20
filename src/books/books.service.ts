@@ -11,8 +11,14 @@ export class BooksService {
     return this.prisma.book.create({ data: createBookDto });
   }
 
-  findAll() {
-    return this.prisma.book.findMany({ include: { user: true } });
+  findAll(title?: string, author?: string) {
+    return this.prisma.book.findMany({
+      where: {
+        title: title ? { contains: title, mode: 'insensitive' } : undefined,
+        author: author ? { contains: author, mode: 'insensitive' } : undefined,
+      },
+      include: { user: true },
+    });
   }
 
   async findOne(id: number) {
