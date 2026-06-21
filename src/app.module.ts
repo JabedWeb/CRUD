@@ -5,9 +5,10 @@ import { BooksModule } from './books/books.module';
 import { StudentsModule } from './students/students.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { OrdersModule } from './orders/orders.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, BooksModule, StudentsModule, CloudinaryModule, OrdersModule],
+  imports: [PrismaModule, UsersModule, BooksModule, StudentsModule, CloudinaryModule, OrdersModule, MailModule],
   controllers: [],
   providers: [],
 })

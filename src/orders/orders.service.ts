@@ -6,10 +6,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async create(createOrderDto: CreateOrderDto) {
     const { studentId, bookId } = createOrderDto;
@@ -53,12 +57,24 @@ export class OrdersService {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     const order = await this.findOne(id);
 
-    // If this update is the one marking the order RETURNED, restore stock here
     if (updateOrderDto.status === 'RETURNED' && order.status !== 'RETURNED') {
       await this.prisma.book.update({
         where: { id: order.bookId },
         data: { stock: { increment: 1 } },
       });
+    }
+
+    if (updateOrderDto.status === 'APPROVED' && order.status !== 'APPROVED') {
+      const book = await this.prisma.book.findUnique({
+        where: { id: order.bookId },
+        include: { user: true },
+      });
+
+      await this.mailService.sendMail(
+        order.student.email,
+        'Your Book Order Has Been Approved',
+        `<p>Hi ${order.student.name}, your order for "<b>${book?.title}</b>" has been approved.</p>`,
+      );
     }
 
     return this.prisma.order.update({ where: { id }, data: updateOrderDto });
